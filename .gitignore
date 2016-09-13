@@ -1,0 +1,21 @@
+.gradle
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+/captures
+
+# Log Files
+*.log
+
+#.idea
+/.idea
+
+/src/androidTest
+
+#imls
+*.iml
+*.iml
+app/app.iml
+*.apk
