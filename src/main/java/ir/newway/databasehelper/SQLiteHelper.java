@@ -91,8 +91,8 @@ public class SQLiteHelper extends SQLiteAssetHelper {
         MasterAsyncTask.createNewTask().insert(mDatabase, tableName, values, listener);
     }
 
-    public void select(String tableName, String[] sqlSelect, onReadListener listener) {
-        MasterAsyncTask.createNewTask().select(mDatabase, tableName, sqlSelect, listener);
+    public void select(String tableName, String[] sqlSelect, String sqlWhere, String[] WhereArgs, String groupBy, String having, String orderBy, onReadListener listener) {
+        MasterAsyncTask.createNewTask().select(mDatabase, tableName, sqlSelect, sqlWhere, WhereArgs, groupBy, having, orderBy, listener);
         // Cursor cursor = mDatabase.query(ZekrDatabase.TABLE_ZEKR, sqlSelect, "user_id = ?", new String[]{userId}, null, null, null);
         // Cursor cursor = mDatabase.rawQuery("SELECT * FROM zekr", null);
     }

@@ -26,6 +26,11 @@ public class MasterAsyncTask extends AsyncTask {
     private SQLiteHelper.onGetInstanceListener[] mGetInstanceListener;
     private SQLiteHelper.onReadListener[] mReadListener;
     private Cursor mReadCursor;
+    private String mSqlWhere;
+    private String[] mSqlWehreArgs;
+    private String mSqlGroupBy;
+    private String mSqlHaving;
+    private String mSqlOrderBy;
 
     protected void insert(SQLiteDatabase database, String tableName, ContentValues values, SQLiteHelper.onInsertListener... listener) {
         mDatabaseSQLiteIO = database;
@@ -36,10 +41,15 @@ public class MasterAsyncTask extends AsyncTask {
         execute();
     }
 
-    protected void select(SQLiteDatabase database, String tableName, String[] sqlSelect, SQLiteHelper.onReadListener... listener) {
+    protected void select(SQLiteDatabase database, String tableName, String[] sqlSelect, String sqlWhere, String[] WhereArgs, String groupBy, String having, String orderBy, SQLiteHelper.onReadListener... listener) {
         mDatabaseSQLiteIO = database;
         mTableName = tableName;
         mSqlSelect = sqlSelect;
+        mSqlWhere = sqlWhere;
+        mSqlWehreArgs = WhereArgs;
+        mSqlGroupBy = groupBy;
+        mSqlHaving = having;
+        mSqlOrderBy = orderBy;
         mReadListener = listener;
         mTaskCode = TASK_READ;
         execute();
@@ -75,7 +85,7 @@ public class MasterAsyncTask extends AsyncTask {
                 mDatabaseInstance.setupDatabase();
                 break;
             case TASK_READ:
-                mReadCursor = mDatabaseSQLiteIO.query(mTableName, mSqlSelect, null, null, null, null, null);
+                mReadCursor = mDatabaseSQLiteIO.query(mTableName, mSqlSelect, mSqlWhere, mSqlWehreArgs, mSqlGroupBy, mSqlHaving, mSqlOrderBy);
         }
 /*        try {
             Thread.sleep(5000);
