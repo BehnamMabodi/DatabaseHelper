@@ -1,9 +1,11 @@
 package ir.newway.databasehelper;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by goldm on 13/09/2016.
@@ -11,9 +13,9 @@ import android.os.AsyncTask;
 public class MasterAsyncTask extends AsyncTask {
     public static final int TASK_GET_DATABASE = 0;
     public static final int TASK_INSERT = 10;
+    private static List<MasterAsyncTask> mTaskLists;
     private SQLiteDatabase mDatabaseSQLiteIO;
     private SQLiteDBHelper mDatabaseInstance;
-    private Context mContext;
     private SQLiteDBHelper.onInsertTaskListener[] mInsertListener;
     private ContentValues mValues;
     private String mTableName;
@@ -29,8 +31,20 @@ public class MasterAsyncTask extends AsyncTask {
         execute();
     }
 
-    protected void setupDatabaseInBackground(Context context, SQLiteDBHelper database, SQLiteDBHelper.onGetInstanceListener... listener) {
-        mContext = context.getApplicationContext();
+    protected static MasterAsyncTask createNewTask() {
+        if (mTaskLists == null)
+            mTaskLists = new ArrayList<>();
+        MasterAsyncTask newTask = new MasterAsyncTask();
+        mTaskLists.add(newTask);
+        return newTask;
+    }
+
+    protected static void RemoveTask(MasterAsyncTask task) {
+        if (mTaskLists != null)
+            mTaskLists.remove(task);
+    }
+
+    protected void setupDatabaseInBackground(SQLiteDBHelper database, SQLiteDBHelper.onGetInstanceListener... listener) {
         mGetInstanceListener = listener;
         mTaskCode = TASK_GET_DATABASE;
         mDatabaseInstance = database;
@@ -46,11 +60,11 @@ public class MasterAsyncTask extends AsyncTask {
             case TASK_GET_DATABASE:
                 mDatabaseInstance.setupDatabase();
         }
-/*        try {
+        try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }*/
+        }
         return null;
     }
 
@@ -60,11 +74,11 @@ public class MasterAsyncTask extends AsyncTask {
         switch (mTaskCode) {
             case TASK_INSERT:
                 for (SQLiteDBHelper.onInsertTaskListener listener : mInsertListener)
-                    listener.onInsertTask(this);
+                    listener.onInsertTask();
                 break;
             case TASK_GET_DATABASE:
                 for (SQLiteDBHelper.onGetInstanceListener listener : mGetInstanceListener)
-                    listener.onGetInstanceTask(this, mDatabaseInstance);
+                    listener.onGetInstanceTask(mDatabaseInstance);
         }
         clearCatch();
     }
@@ -75,12 +89,19 @@ public class MasterAsyncTask extends AsyncTask {
         clearCatch();
     }
 
+    public static void cancelAllTasks() {
+        for (MasterAsyncTask task : mTaskLists) {
+            task.cancel(false);
+        }
+        mTaskLists.clear();
+    }
+
     private void clearCatch() {
         mDatabaseInstance = null;
         mDatabaseSQLiteIO = null;
         mGetInstanceListener = null;
         mInsertListener = null;
         mValues = null;
-        mContext = null;
+        RemoveTask(this);
     }
 }

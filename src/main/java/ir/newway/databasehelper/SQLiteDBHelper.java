@@ -20,21 +20,20 @@ public class SQLiteDBHelper extends SQLiteAssetHelper {
     protected String mName;
     protected int mVersion;
     private static List<SQLiteDBHelper> mInstance;
-    private List<MasterAsyncTask> mTaskLists;
+
 
     public interface onInsertTaskListener {
-        void onInsertTask(MasterAsyncTask task);
+        void onInsertTask();
     }
 
     public interface onGetInstanceListener {
-        void onGetInstanceTask(MasterAsyncTask task, SQLiteDBHelper database);
+        void onGetInstanceTask(SQLiteDBHelper database);
     }
 
 
     public SQLiteDBHelper(Context context, String name, String storageDirectory, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, storageDirectory, factory, version);
         mContext = context.getApplicationContext();
-        mTaskLists = new ArrayList<>();
         mName = name;
         mVersion = version;
     }
@@ -42,7 +41,6 @@ public class SQLiteDBHelper extends SQLiteAssetHelper {
     public SQLiteDBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
         mContext = context.getApplicationContext();
-        mTaskLists = new ArrayList<>();
         mName = name;
         mVersion = version;
     }
@@ -54,15 +52,10 @@ public class SQLiteDBHelper extends SQLiteAssetHelper {
             //TODO: Add synchronized block here
             DBHelper = new SQLiteDBHelper(context, dbName, null, dbVersion);
             mInstance.add(DBHelper);
-            MasterAsyncTask task = DBHelper.createNewTask();
-            task.setupDatabaseInBackground(context, DBHelper, listener, new onGetInstanceListener() {
-                @Override
-                public void onGetInstanceTask(MasterAsyncTask task, SQLiteDBHelper database) {
-                    database.RemoveTask(task);
-                }
-            });
+            MasterAsyncTask getInstanceTask = MasterAsyncTask.createNewTask();
+            getInstanceTask.setupDatabaseInBackground(DBHelper, listener);
         } else {
-            listener.onGetInstanceTask(null, DBHelper);
+            listener.onGetInstanceTask(DBHelper);
         }
     }
 
@@ -91,12 +84,7 @@ public class SQLiteDBHelper extends SQLiteAssetHelper {
 
 
     public void insert(String tableName, ContentValues values, onInsertTaskListener listener) {
-        createNewTask().insert(mDatabase, tableName, values, listener, new onInsertTaskListener() {
-            @Override
-            public void onInsertTask(MasterAsyncTask task) {
-                RemoveTask(task);
-            }
-        });
+        MasterAsyncTask.createNewTask().insert(mDatabase, tableName, values, listener);
     }
 
     public Cursor select(String tableName, String[] sqlSelect) {
@@ -107,19 +95,10 @@ public class SQLiteDBHelper extends SQLiteAssetHelper {
         return cursor;
     }
 
-    protected MasterAsyncTask createNewTask() {
-        MasterAsyncTask newTask = new MasterAsyncTask();
-        mTaskLists.add(newTask);
-        return newTask;
-    }
-
     public SQLiteDatabase getWriteableDatabase() {
         return mDatabase;
     }
 
-    protected void RemoveTask(MasterAsyncTask task) {
-        mTaskLists.remove(task);
-    }
 
     public static void closeAllTasks() {
         if (mInstance != null)
@@ -129,10 +108,7 @@ public class SQLiteDBHelper extends SQLiteAssetHelper {
     }
 
     public void closeTasks() {
-        for (MasterAsyncTask task : mTaskLists) {
-            task.cancel(false);
-        }
-        mTaskLists.clear();
+        MasterAsyncTask.cancelAllTasks();
     }
 
 }
