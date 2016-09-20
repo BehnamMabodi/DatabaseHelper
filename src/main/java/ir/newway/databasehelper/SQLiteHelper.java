@@ -13,13 +13,13 @@ import java.util.List;
 /**
  * Created by goldm on 13/09/2016.
  */
-public class SQLiteDBHelper extends SQLiteAssetHelper {
+public class SQLiteHelper extends SQLiteAssetHelper {
 
     protected Context mContext;
     protected SQLiteDatabase mDatabase;
     protected String mName;
     protected int mVersion;
-    private static List<SQLiteDBHelper> mInstance;
+    private static List<SQLiteHelper> mInstance;
 
 
     public interface onInsertTaskListener {
@@ -27,18 +27,18 @@ public class SQLiteDBHelper extends SQLiteAssetHelper {
     }
 
     public interface onGetInstanceListener {
-        void onGetInstanceTask(SQLiteDBHelper database);
+        void onGetInstanceTask(SQLiteHelper database);
     }
 
 
-    public SQLiteDBHelper(Context context, String name, String storageDirectory, SQLiteDatabase.CursorFactory factory, int version) {
+    public SQLiteHelper(Context context, String name, String storageDirectory, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, storageDirectory, factory, version);
         mContext = context.getApplicationContext();
         mName = name;
         mVersion = version;
     }
 
-    public SQLiteDBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+    public SQLiteHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
         mContext = context.getApplicationContext();
         mName = name;
@@ -47,10 +47,10 @@ public class SQLiteDBHelper extends SQLiteAssetHelper {
 
     // <Database Instance Creator> //
     public static synchronized void getInstance(Context context, String dbName, int dbVersion, onGetInstanceListener listener) {
-        SQLiteDBHelper DBHelper = getInstanceIfExist(dbName);
+        SQLiteHelper DBHelper = getInstanceIfExist(dbName);
         if (DBHelper == null) {
             //TODO: Add synchronized block here
-            DBHelper = new SQLiteDBHelper(context, dbName, null, dbVersion);
+            DBHelper = new SQLiteHelper(context, dbName, null, dbVersion);
             mInstance.add(DBHelper);
             MasterAsyncTask getInstanceTask = MasterAsyncTask.createNewTask();
             getInstanceTask.setupDatabaseInBackground(DBHelper, listener);
@@ -59,9 +59,9 @@ public class SQLiteDBHelper extends SQLiteAssetHelper {
         }
     }
 
-    private static SQLiteDBHelper getInstanceIfExist(String dbName) {
+    private static SQLiteHelper getInstanceIfExist(String dbName) {
         if (mInstance != null) {
-            for (SQLiteDBHelper instance : mInstance) {
+            for (SQLiteHelper instance : mInstance) {
                 if (instance.getName().equals(dbName))
                     return instance;
             }
@@ -102,7 +102,7 @@ public class SQLiteDBHelper extends SQLiteAssetHelper {
 
     public static void closeAllTasks() {
         if (mInstance != null)
-            for (SQLiteDBHelper instance : mInstance) {
+            for (SQLiteHelper instance : mInstance) {
                 instance.closeTasks();
             }
     }

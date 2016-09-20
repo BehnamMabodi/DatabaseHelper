@@ -15,14 +15,14 @@ public class MasterAsyncTask extends AsyncTask {
     public static final int TASK_INSERT = 10;
     private static List<MasterAsyncTask> mTaskLists;
     private SQLiteDatabase mDatabaseSQLiteIO;
-    private SQLiteDBHelper mDatabaseInstance;
-    private SQLiteDBHelper.onInsertTaskListener[] mInsertListener;
+    private SQLiteHelper mDatabaseInstance;
+    private SQLiteHelper.onInsertTaskListener[] mInsertListener;
     private ContentValues mValues;
     private String mTableName;
     private int mTaskCode;
-    private SQLiteDBHelper.onGetInstanceListener[] mGetInstanceListener;
+    private SQLiteHelper.onGetInstanceListener[] mGetInstanceListener;
 
-    protected void insert(SQLiteDatabase database, String tableName, ContentValues values, SQLiteDBHelper.onInsertTaskListener... listener) {
+    protected void insert(SQLiteDatabase database, String tableName, ContentValues values, SQLiteHelper.onInsertTaskListener... listener) {
         mDatabaseSQLiteIO = database;
         mValues = values;
         mInsertListener = listener;
@@ -44,7 +44,7 @@ public class MasterAsyncTask extends AsyncTask {
             mTaskLists.remove(task);
     }
 
-    protected void setupDatabaseInBackground(SQLiteDBHelper database, SQLiteDBHelper.onGetInstanceListener... listener) {
+    protected void setupDatabaseInBackground(SQLiteHelper database, SQLiteHelper.onGetInstanceListener... listener) {
         mGetInstanceListener = listener;
         mTaskCode = TASK_GET_DATABASE;
         mDatabaseInstance = database;
@@ -73,11 +73,11 @@ public class MasterAsyncTask extends AsyncTask {
         super.onPostExecute(o);
         switch (mTaskCode) {
             case TASK_INSERT:
-                for (SQLiteDBHelper.onInsertTaskListener listener : mInsertListener)
+                for (SQLiteHelper.onInsertTaskListener listener : mInsertListener)
                     listener.onInsertTask();
                 break;
             case TASK_GET_DATABASE:
-                for (SQLiteDBHelper.onGetInstanceListener listener : mGetInstanceListener)
+                for (SQLiteHelper.onGetInstanceListener listener : mGetInstanceListener)
                     listener.onGetInstanceTask(mDatabaseInstance);
         }
         clearCatch();
