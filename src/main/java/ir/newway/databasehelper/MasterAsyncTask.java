@@ -60,11 +60,11 @@ public class MasterAsyncTask extends AsyncTask {
         switch (mTaskCode) {
             case TASK_INSERT:
                 for (SQLiteDBHelper.onInsertTaskListener listener : mInsertListener)
-                    listener.onTaskDone(this);
+                    listener.onInsertTask(this);
                 break;
             case TASK_GET_DATABASE:
                 for (SQLiteDBHelper.onGetInstanceListener listener : mGetInstanceListener)
-                    listener.onTaskDone(this, mDatabaseInstance);
+                    listener.onGetInstanceTask(this, mDatabaseInstance);
         }
         clearCatch();
     }

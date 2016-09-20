@@ -23,11 +23,11 @@ public class SQLiteDBHelper extends SQLiteAssetHelper {
     private List<MasterAsyncTask> mTaskLists;
 
     public interface onInsertTaskListener {
-        void onTaskDone(MasterAsyncTask task);
+        void onInsertTask(MasterAsyncTask task);
     }
 
     public interface onGetInstanceListener {
-        void onTaskDone(MasterAsyncTask task, SQLiteDBHelper database);
+        void onGetInstanceTask(MasterAsyncTask task, SQLiteDBHelper database);
     }
 
 
@@ -57,12 +57,12 @@ public class SQLiteDBHelper extends SQLiteAssetHelper {
             MasterAsyncTask task = DBHelper.createNewTask();
             task.setupDatabaseInBackground(context, DBHelper, listener, new onGetInstanceListener() {
                 @Override
-                public void onTaskDone(MasterAsyncTask task, SQLiteDBHelper database) {
+                public void onGetInstanceTask(MasterAsyncTask task, SQLiteDBHelper database) {
                     database.RemoveTask(task);
                 }
             });
         } else {
-            listener.onTaskDone(null, DBHelper);
+            listener.onGetInstanceTask(null, DBHelper);
         }
     }
 
@@ -93,7 +93,7 @@ public class SQLiteDBHelper extends SQLiteAssetHelper {
     public void insert(String tableName, ContentValues values, onInsertTaskListener listener) {
         createNewTask().insert(mDatabase, tableName, values, listener, new onInsertTaskListener() {
             @Override
-            public void onTaskDone(MasterAsyncTask task) {
+            public void onInsertTask(MasterAsyncTask task) {
                 RemoveTask(task);
             }
         });
