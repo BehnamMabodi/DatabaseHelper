@@ -1,6 +1,7 @@
 package ir.newway.databasehelper;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 
@@ -13,21 +14,34 @@ import java.util.List;
 public class MasterAsyncTask extends AsyncTask {
     public static final int TASK_GET_DATABASE = 0;
     public static final int TASK_INSERT = 10;
+    public static final int TASK_READ = 20;
     private static List<MasterAsyncTask> mTaskLists;
     private SQLiteDatabase mDatabaseSQLiteIO;
     private SQLiteHelper mDatabaseInstance;
-    private SQLiteHelper.onInsertTaskListener[] mInsertListener;
+    private SQLiteHelper.onInsertListener[] mInsertListener;
     private ContentValues mValues;
     private String mTableName;
+    private String[] mSqlSelect;
     private int mTaskCode;
     private SQLiteHelper.onGetInstanceListener[] mGetInstanceListener;
+    private SQLiteHelper.onReadListener[] mReadListener;
+    private Cursor mReadCursor;
 
-    protected void insert(SQLiteDatabase database, String tableName, ContentValues values, SQLiteHelper.onInsertTaskListener... listener) {
+    protected void insert(SQLiteDatabase database, String tableName, ContentValues values, SQLiteHelper.onInsertListener... listener) {
         mDatabaseSQLiteIO = database;
         mValues = values;
         mInsertListener = listener;
         mTableName = tableName;
         mTaskCode = TASK_INSERT;
+        execute();
+    }
+
+    protected void select(SQLiteDatabase database, String tableName, String[] sqlSelect, SQLiteHelper.onReadListener... listener) {
+        mDatabaseSQLiteIO = database;
+        mTableName = tableName;
+        mSqlSelect = sqlSelect;
+        mReadListener = listener;
+        mTaskCode = TASK_READ;
         execute();
     }
 
@@ -59,12 +73,15 @@ public class MasterAsyncTask extends AsyncTask {
                 break;
             case TASK_GET_DATABASE:
                 mDatabaseInstance.setupDatabase();
+                break;
+            case TASK_READ:
+                mReadCursor = mDatabaseSQLiteIO.query(mTableName, mSqlSelect, null, null, null, null, null);
         }
-        try {
+/*        try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }
+        }*/
         return null;
     }
 
@@ -73,12 +90,17 @@ public class MasterAsyncTask extends AsyncTask {
         super.onPostExecute(o);
         switch (mTaskCode) {
             case TASK_INSERT:
-                for (SQLiteHelper.onInsertTaskListener listener : mInsertListener)
-                    listener.onInsertTask();
+                for (SQLiteHelper.onInsertListener listener : mInsertListener)
+                    listener.onInsert();
                 break;
             case TASK_GET_DATABASE:
                 for (SQLiteHelper.onGetInstanceListener listener : mGetInstanceListener)
-                    listener.onGetInstanceTask(mDatabaseInstance);
+                    listener.onGetInstance(mDatabaseInstance);
+                break;
+            case TASK_READ:
+                for (SQLiteHelper.onReadListener listener : mReadListener)
+                    listener.onRead(mReadCursor);
+
         }
         clearCatch();
     }
@@ -101,7 +123,9 @@ public class MasterAsyncTask extends AsyncTask {
         mDatabaseSQLiteIO = null;
         mGetInstanceListener = null;
         mInsertListener = null;
+        mReadListener = null;
         mValues = null;
+        mReadCursor = null;
         RemoveTask(this);
     }
 }

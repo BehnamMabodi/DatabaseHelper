@@ -22,12 +22,16 @@ public class SQLiteHelper extends SQLiteAssetHelper {
     private static List<SQLiteHelper> mInstance;
 
 
-    public interface onInsertTaskListener {
-        void onInsertTask();
+    public interface onInsertListener {
+        void onInsert();
     }
 
     public interface onGetInstanceListener {
-        void onGetInstanceTask(SQLiteHelper database);
+        void onGetInstance(SQLiteHelper database);
+    }
+
+    public interface onReadListener {
+        void onRead(Cursor cursor);
     }
 
 
@@ -55,7 +59,7 @@ public class SQLiteHelper extends SQLiteAssetHelper {
             MasterAsyncTask getInstanceTask = MasterAsyncTask.createNewTask();
             getInstanceTask.setupDatabaseInBackground(DBHelper, listener);
         } else {
-            listener.onGetInstanceTask(DBHelper);
+            listener.onGetInstance(DBHelper);
         }
     }
 
@@ -83,16 +87,14 @@ public class SQLiteHelper extends SQLiteAssetHelper {
     // </Database Instance Creator> //
 
 
-    public void insert(String tableName, ContentValues values, onInsertTaskListener listener) {
+    public void insert(String tableName, ContentValues values, onInsertListener listener) {
         MasterAsyncTask.createNewTask().insert(mDatabase, tableName, values, listener);
     }
 
-    public Cursor select(String tableName, String[] sqlSelect) {
+    public void select(String tableName, String[] sqlSelect, onReadListener listener) {
+        MasterAsyncTask.createNewTask().select(mDatabase, tableName, sqlSelect, listener);
         // Cursor cursor = mDatabase.query(ZekrDatabase.TABLE_ZEKR, sqlSelect, "user_id = ?", new String[]{userId}, null, null, null);
-        Cursor cursor = mDatabase.query(tableName, sqlSelect, null, null, null, null, null);
         // Cursor cursor = mDatabase.rawQuery("SELECT * FROM zekr", null);
-        cursor.moveToFirst();
-        return cursor;
     }
 
     public SQLiteDatabase getWriteableDatabase() {
