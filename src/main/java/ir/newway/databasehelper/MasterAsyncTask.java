@@ -13,12 +13,12 @@ import java.util.List;
  */
 public class MasterAsyncTask extends AsyncTask {
     public static final int TASK_GET_DATABASE = 0;
-    public static final int TASK_INSERT = 10;
+    public static final int TASK_INSERT_REPLACE = 10;
     public static final int TASK_READ = 20;
     private static List<MasterAsyncTask> mTaskLists;
     private SQLiteDatabase mDatabaseSQLiteIO;
     private SQLiteHelper mDatabaseInstance;
-    private SQLiteHelper.onInsertListener[] mInsertListener;
+    private SQLiteHelper.onInsertOrReplaceListener[] mInsertListener;
     private ContentValues mValues;
     private String mTableName;
     private String[] mSqlSelect;
@@ -31,13 +31,14 @@ public class MasterAsyncTask extends AsyncTask {
     private String mSqlGroupBy;
     private String mSqlHaving;
     private String mSqlOrderBy;
+    private long mInsertedRowId;
 
-    protected void insert(SQLiteDatabase database, String tableName, ContentValues values, SQLiteHelper.onInsertListener... listener) {
+    protected void insertOrReplace(SQLiteDatabase database, String tableName, ContentValues values, SQLiteHelper.onInsertOrReplaceListener... listener) {
         mDatabaseSQLiteIO = database;
         mValues = values;
         mInsertListener = listener;
         mTableName = tableName;
-        mTaskCode = TASK_INSERT;
+        mTaskCode = TASK_INSERT_REPLACE;
         execute();
     }
 
@@ -78,8 +79,8 @@ public class MasterAsyncTask extends AsyncTask {
     @Override
     protected Object doInBackground(Object[] objects) {
         switch (mTaskCode) {
-            case TASK_INSERT:
-                mDatabaseSQLiteIO.insert(mTableName, null, mValues);
+            case TASK_INSERT_REPLACE:
+                mInsertedRowId = mDatabaseSQLiteIO.insertOrThrow(mTableName, null, mValues);
                 break;
             case TASK_GET_DATABASE:
                 mDatabaseInstance.setupDatabase();
@@ -99,9 +100,9 @@ public class MasterAsyncTask extends AsyncTask {
     protected void onPostExecute(Object o) {
         super.onPostExecute(o);
         switch (mTaskCode) {
-            case TASK_INSERT:
-                for (SQLiteHelper.onInsertListener listener : mInsertListener)
-                    listener.onInsert();
+            case TASK_INSERT_REPLACE:
+                for (SQLiteHelper.onInsertOrReplaceListener listener : mInsertListener)
+                    listener.onInsertOrReplace(mInsertedRowId);
                 break;
             case TASK_GET_DATABASE:
                 for (SQLiteHelper.onGetInstanceListener listener : mGetInstanceListener)

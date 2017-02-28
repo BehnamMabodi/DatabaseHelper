@@ -22,8 +22,8 @@ public class SQLiteHelper extends SQLiteAssetHelper {
     private static List<SQLiteHelper> mInstance;
 
 
-    public interface onInsertListener {
-        void onInsert();
+    public interface onInsertOrReplaceListener {
+        void onInsertOrReplace(long id);
     }
 
     public interface onGetInstanceListener {
@@ -87,8 +87,8 @@ public class SQLiteHelper extends SQLiteAssetHelper {
     // </Database Instance Creator> //
 
 
-    public void insert(String tableName, ContentValues values, onInsertListener listener) {
-        MasterAsyncTask.createNewTask().insert(mDatabase, tableName, values, listener);
+    public void insertOrReplace(String tableName, ContentValues values, onInsertOrReplaceListener listener) {
+        MasterAsyncTask.createNewTask().insertOrReplace(mDatabase, tableName, values, listener);
     }
 
     public void select(String tableName, String[] sqlSelect, String sqlWhere, String[] WhereArgs, String groupBy, String having, String orderBy, onReadListener listener) {
