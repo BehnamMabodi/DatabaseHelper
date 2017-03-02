@@ -80,7 +80,7 @@ public class MasterAsyncTask extends AsyncTask {
     protected Object doInBackground(Object[] objects) {
         switch (mTaskCode) {
             case TASK_INSERT_REPLACE:
-                mInsertedRowId = mDatabaseSQLiteIO.insertOrThrow(mTableName, null, mValues);
+                mInsertedRowId = mDatabaseSQLiteIO.replace(mTableName, null, mValues);
                 break;
             case TASK_GET_DATABASE:
                 mDatabaseInstance.setupDatabase();
