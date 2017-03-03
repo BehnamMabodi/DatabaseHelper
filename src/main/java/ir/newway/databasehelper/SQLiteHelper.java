@@ -26,6 +26,10 @@ public class SQLiteHelper extends SQLiteAssetHelper {
         void onInsertOrReplace(long id);
     }
 
+    public interface onDeleteListener {
+        void onDelete(int numberOfDeletedRows);
+    }
+
     public interface onGetInstanceListener {
         void onGetInstance(SQLiteHelper database);
     }
@@ -95,6 +99,10 @@ public class SQLiteHelper extends SQLiteAssetHelper {
         MasterAsyncTask.createNewTask().select(mDatabase, tableName, sqlSelect, sqlWhere, WhereArgs, groupBy, having, orderBy, listener);
         // Cursor cursor = mDatabase.query(ZekrDatabase.TABLE_ZEKR, sqlSelect, "user_id = ?", new String[]{userId}, null, null, null);
         // Cursor cursor = mDatabase.rawQuery("SELECT * FROM zekr", null);
+    }
+
+    public void delete(String tableName, String sqlWhere, String[] WhereArgs, onDeleteListener listener) {
+        MasterAsyncTask.createNewTask().delete(mDatabase, tableName, sqlWhere, WhereArgs, listener);
     }
 
     public SQLiteDatabase getWriteableDatabase() {

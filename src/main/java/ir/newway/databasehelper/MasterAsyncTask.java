@@ -15,6 +15,7 @@ public class MasterAsyncTask extends AsyncTask {
     public static final int TASK_GET_DATABASE = 0;
     public static final int TASK_INSERT_REPLACE = 10;
     public static final int TASK_READ = 20;
+    public static final int TASK_DELETE = 30;
     private static List<MasterAsyncTask> mTaskLists;
     private SQLiteDatabase mDatabaseSQLiteIO;
     private SQLiteHelper mDatabaseInstance;
@@ -25,13 +26,15 @@ public class MasterAsyncTask extends AsyncTask {
     private int mTaskCode;
     private SQLiteHelper.onGetInstanceListener[] mGetInstanceListener;
     private SQLiteHelper.onReadListener[] mReadListener;
+    private SQLiteHelper.onDeleteListener[] mDeleteListener;
     private Cursor mReadCursor;
     private String mSqlWhere;
-    private String[] mSqlWehreArgs;
+    private String[] mSqlWhereArgs;
     private String mSqlGroupBy;
     private String mSqlHaving;
     private String mSqlOrderBy;
     private long mInsertedRowId;
+    private int mDeletedRows;
 
     protected void insertOrReplace(SQLiteDatabase database, String tableName, ContentValues values, SQLiteHelper.onInsertOrReplaceListener... listener) {
         mDatabaseSQLiteIO = database;
@@ -47,12 +50,22 @@ public class MasterAsyncTask extends AsyncTask {
         mTableName = tableName;
         mSqlSelect = sqlSelect;
         mSqlWhere = sqlWhere;
-        mSqlWehreArgs = WhereArgs;
+        mSqlWhereArgs = WhereArgs;
         mSqlGroupBy = groupBy;
         mSqlHaving = having;
         mSqlOrderBy = orderBy;
         mReadListener = listener;
         mTaskCode = TASK_READ;
+        execute();
+    }
+
+    protected void delete(SQLiteDatabase database, String tableName, String sqlWhere, String[] WhereArgs, SQLiteHelper.onDeleteListener... listener) {
+        mDatabaseSQLiteIO = database;
+        mTableName = tableName;
+        mSqlWhere = sqlWhere;
+        mSqlWhereArgs = WhereArgs;
+        mDeleteListener = listener;
+        mTaskCode = TASK_DELETE;
         execute();
     }
 
@@ -86,7 +99,10 @@ public class MasterAsyncTask extends AsyncTask {
                 mDatabaseInstance.setupDatabase();
                 break;
             case TASK_READ:
-                mReadCursor = mDatabaseSQLiteIO.query(mTableName, mSqlSelect, mSqlWhere, mSqlWehreArgs, mSqlGroupBy, mSqlHaving, mSqlOrderBy);
+                mReadCursor = mDatabaseSQLiteIO.query(mTableName, mSqlSelect, mSqlWhere, mSqlWhereArgs, mSqlGroupBy, mSqlHaving, mSqlOrderBy);
+                break;
+            case TASK_DELETE:
+                mDeletedRows = mDatabaseSQLiteIO.delete(mTableName, mSqlWhere, mSqlWhereArgs);
         }
 /*        try {
             Thread.sleep(5000);
@@ -102,15 +118,23 @@ public class MasterAsyncTask extends AsyncTask {
         switch (mTaskCode) {
             case TASK_INSERT_REPLACE:
                 for (SQLiteHelper.onInsertOrReplaceListener listener : mInsertListener)
-                    listener.onInsertOrReplace(mInsertedRowId);
+                    if (listener != null)
+                        listener.onInsertOrReplace(mInsertedRowId);
                 break;
             case TASK_GET_DATABASE:
                 for (SQLiteHelper.onGetInstanceListener listener : mGetInstanceListener)
-                    listener.onGetInstance(mDatabaseInstance);
+                    if (listener != null)
+                        listener.onGetInstance(mDatabaseInstance);
                 break;
             case TASK_READ:
                 for (SQLiteHelper.onReadListener listener : mReadListener)
-                    listener.onRead(mReadCursor);
+                    if (listener != null)
+                        listener.onRead(mReadCursor);
+                break;
+            case TASK_DELETE:
+                for (SQLiteHelper.onDeleteListener listener : mDeleteListener)
+                    if (listener != null)
+                        listener.onDelete(mDeletedRows);
 
         }
         clearCatch();
@@ -135,6 +159,7 @@ public class MasterAsyncTask extends AsyncTask {
         mGetInstanceListener = null;
         mInsertListener = null;
         mReadListener = null;
+        mDeleteListener = null;
         mValues = null;
         mReadCursor = null;
         RemoveTask(this);
