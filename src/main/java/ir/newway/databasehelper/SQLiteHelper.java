@@ -15,7 +15,6 @@ import java.util.List;
  */
 public class SQLiteHelper extends SQLiteAssetHelper {
 
-    protected Context mContext;
     protected SQLiteDatabase mDatabase;
     protected String mName;
     protected int mVersion;
@@ -40,15 +39,13 @@ public class SQLiteHelper extends SQLiteAssetHelper {
 
 
     public SQLiteHelper(Context context, String name, String storageDirectory, SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, name, storageDirectory, factory, version);
-        mContext = context.getApplicationContext();
+        super(context.getApplicationContext(), name, storageDirectory, factory, version);
         mName = name;
         mVersion = version;
     }
 
     public SQLiteHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, name, factory, version);
-        mContext = context.getApplicationContext();
+        super(context.getApplicationContext(), name, factory, version);
         mName = name;
         mVersion = version;
     }
