@@ -16,6 +16,7 @@ public class MasterAsyncTask extends AsyncTask {
     public static final int TASK_INSERT_REPLACE = 10;
     public static final int TASK_READ = 20;
     public static final int TASK_DELETE = 30;
+    public static final int TASK_EXEC_SQL = 40;
     private static List<MasterAsyncTask> mTaskLists;
     private SQLiteDatabase mDatabaseSQLiteIO;
     private SQLiteHelper mDatabaseInstance;
@@ -35,6 +36,17 @@ public class MasterAsyncTask extends AsyncTask {
     private String mSqlOrderBy;
     private long mInsertedRowId;
     private int mDeletedRows;
+    private String mRawQuery;
+    private String[] mRawQueryARGS;
+
+    protected void rawQuery(SQLiteDatabase database, String rawQuery, String[] rawQueryARGS, SQLiteHelper.onReadListener... listener) {
+        mDatabaseSQLiteIO = database;
+        mReadListener = listener;
+        mRawQuery = rawQuery;
+        mRawQueryARGS = rawQueryARGS;
+        mTaskCode = TASK_EXEC_SQL;
+        execute();
+    }
 
     protected void insertOrReplace(SQLiteDatabase database, String tableName, ContentValues values, SQLiteHelper.onInsertOrReplaceListener... listener) {
         mDatabaseSQLiteIO = database;
@@ -103,12 +115,15 @@ public class MasterAsyncTask extends AsyncTask {
                 break;
             case TASK_DELETE:
                 mDeletedRows = mDatabaseSQLiteIO.delete(mTableName, mSqlWhere, mSqlWhereArgs);
+            case TASK_EXEC_SQL:
+                mReadCursor = mDatabaseSQLiteIO.rawQuery(mRawQuery, mRawQueryARGS);
         }
 /*        try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }*/
+
         return null;
     }
 
@@ -135,6 +150,12 @@ public class MasterAsyncTask extends AsyncTask {
                 for (SQLiteHelper.onDeleteListener listener : mDeleteListener)
                     if (listener != null)
                         listener.onDelete(mDeletedRows);
+                break;
+            case TASK_EXEC_SQL:
+                for (SQLiteHelper.onReadListener listener : mReadListener)
+                    if (listener != null)
+                        listener.onRead(mReadCursor);
+                break;
 
         }
         clearCatch();

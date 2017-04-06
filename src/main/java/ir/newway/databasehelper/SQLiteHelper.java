@@ -105,6 +105,10 @@ public class SQLiteHelper extends SQLiteAssetHelper {
         MasterAsyncTask.createNewTask().delete(mDatabase, tableName, sqlWhere, WhereArgs, listener);
     }
 
+    public void rawQuery(String rawQuery, String[] queryARGS, onReadListener listener) {
+        MasterAsyncTask.createNewTask().rawQuery(mDatabase, rawQuery, queryARGS, listener);
+    }
+
     public SQLiteDatabase getWriteableDatabase() {
         return mDatabase;
     }
