@@ -115,6 +115,7 @@ public class MasterAsyncTask extends AsyncTask {
                 break;
             case TASK_DELETE:
                 mDeletedRows = mDatabaseSQLiteIO.delete(mTableName, mSqlWhere, mSqlWhereArgs);
+                break;
             case TASK_EXEC_SQL:
                 mReadCursor = mDatabaseSQLiteIO.rawQuery(mRawQuery, mRawQueryARGS);
         }
