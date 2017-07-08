@@ -80,7 +80,8 @@ public class SQLiteHelper extends SQLiteAssetHelper {
     }
 
     protected synchronized SQLiteDatabase setupDatabase() {
-        mDatabase = getWritableDatabase();
+        if (mDatabase == null)
+            mDatabase = getWritableDatabase();
         return mDatabase;
     }
 
@@ -92,27 +93,22 @@ public class SQLiteHelper extends SQLiteAssetHelper {
 
 
     public void insertOrReplace(String tableName, ContentValues values, onInsertOrReplaceListener listener) {
-        MasterAsyncTask.createNewTask().insertOrReplace(mDatabase, tableName, values, listener);
+        MasterAsyncTask.createNewTask().insertOrReplace(setupDatabase(), tableName, values, listener);
     }
 
     public void select(String tableName, String[] sqlSelect, String sqlWhere, String[] WhereArgs, String groupBy, String having, String orderBy, onReadListener listener) {
-        MasterAsyncTask.createNewTask().select(mDatabase, tableName, sqlSelect, sqlWhere, WhereArgs, groupBy, having, orderBy, listener);
+        MasterAsyncTask.createNewTask().select(setupDatabase(), tableName, sqlSelect, sqlWhere, WhereArgs, groupBy, having, orderBy, listener);
         // Cursor cursor = mDatabase.query(ZekrDatabase.TABLE_ZEKR, sqlSelect, "user_id = ?", new String[]{userId}, null, null, null);
         // Cursor cursor = mDatabase.rawQuery("SELECT * FROM zekr", null);
     }
 
     public void delete(String tableName, String sqlWhere, String[] WhereArgs, onDeleteListener listener) {
-        MasterAsyncTask.createNewTask().delete(mDatabase, tableName, sqlWhere, WhereArgs, listener);
+        MasterAsyncTask.createNewTask().delete(setupDatabase(), tableName, sqlWhere, WhereArgs, listener);
     }
 
     public void rawQuery(String rawQuery, String[] queryARGS, onReadListener listener) {
-        MasterAsyncTask.createNewTask().rawQuery(mDatabase, rawQuery, queryARGS, listener);
+        MasterAsyncTask.createNewTask().rawQuery(setupDatabase(), rawQuery, queryARGS, listener);
     }
-
-    public SQLiteDatabase getWriteableDatabase() {
-        return mDatabase;
-    }
-
 
     public static void closeAllTasks() {
         if (mInstance != null)
