@@ -79,7 +79,7 @@ public class SQLiteHelper extends SQLiteAssetHelper {
         return null;
     }
 
-    protected synchronized SQLiteDatabase setupDatabase() {
+    public synchronized SQLiteDatabase setupDatabase() {
         if (mDatabase == null)
             mDatabase = getWritableDatabase();
         return mDatabase;
