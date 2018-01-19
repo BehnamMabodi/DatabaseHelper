@@ -17,6 +17,8 @@ public class MasterAsyncTask extends AsyncTask {
     public static final int TASK_READ = 20;
     public static final int TASK_DELETE = 30;
     public static final int TASK_EXEC_SQL = 40;
+    public static final int TASK_UPDATE = 50;
+    public static final int TASK_INSERT = 60;
     private static List<MasterAsyncTask> mTaskLists;
     private SQLiteDatabase mDatabaseSQLiteIO;
     private SQLiteHelper mDatabaseInstance;
@@ -28,6 +30,7 @@ public class MasterAsyncTask extends AsyncTask {
     private SQLiteHelper.onGetInstanceListener[] mGetInstanceListener;
     private SQLiteHelper.onReadListener[] mReadListener;
     private SQLiteHelper.onDeleteListener[] mDeleteListener;
+    private SQLiteHelper.onUpdateListener[] mOnUpdateListener;
     private Cursor mReadCursor;
     private String mSqlWhere;
     private String[] mSqlWhereArgs;
@@ -36,6 +39,7 @@ public class MasterAsyncTask extends AsyncTask {
     private String mSqlOrderBy;
     private long mInsertedRowId;
     private int mDeletedRows;
+    private int mAffectedRows;
     private String mRawQuery;
     private String[] mRawQueryARGS;
 
@@ -56,6 +60,27 @@ public class MasterAsyncTask extends AsyncTask {
         mTaskCode = TASK_INSERT_REPLACE;
         execute();
     }
+
+    protected void insert(SQLiteDatabase database, String tableName, ContentValues values, SQLiteHelper.onInsertOrReplaceListener... listener) {
+        mDatabaseSQLiteIO = database;
+        mTableName = tableName;
+        mValues = values;
+        mInsertListener = listener;
+        mTaskCode = TASK_INSERT;
+        execute();
+    }
+
+    protected void update(SQLiteDatabase database, String tableName, ContentValues values, String sqlWhere, String[] whereArgs, SQLiteHelper.onUpdateListener... listener) {
+        mDatabaseSQLiteIO = database;
+        mTableName = tableName;
+        mValues = values;
+        mSqlWhere = sqlWhere;
+        mSqlWhereArgs = whereArgs;
+        mOnUpdateListener = listener;
+        mTaskCode = TASK_UPDATE;
+        execute();
+    }
+
 
     protected void select(SQLiteDatabase database, String tableName, String[] sqlSelect, String sqlWhere, String[] WhereArgs, String groupBy, String having, String orderBy, SQLiteHelper.onReadListener... listener) {
         mDatabaseSQLiteIO = database;
@@ -118,6 +143,10 @@ public class MasterAsyncTask extends AsyncTask {
                 break;
             case TASK_EXEC_SQL:
                 mReadCursor = mDatabaseSQLiteIO.rawQuery(mRawQuery, mRawQueryARGS);
+            case TASK_UPDATE:
+                mAffectedRows = mDatabaseSQLiteIO.update(mTableName, mValues, mSqlWhere, mSqlWhereArgs);
+            case TASK_INSERT:
+                mInsertedRowId = mDatabaseSQLiteIO.insert(mTableName, null, mValues);
         }
 /*        try {
             Thread.sleep(5000);
@@ -157,6 +186,17 @@ public class MasterAsyncTask extends AsyncTask {
                     if (listener != null)
                         listener.onRead(mReadCursor);
                 break;
+            case TASK_UPDATE:
+                for (SQLiteHelper.onUpdateListener listener : mOnUpdateListener)
+                    if (listener != null)
+                        listener.onUpdate(mAffectedRows);
+                break;
+            case TASK_INSERT:
+                for (SQLiteHelper.onInsertOrReplaceListener listener : mInsertListener)
+                    if (listener != null)
+                        listener.onInsertOrReplace(mInsertedRowId);
+                break;
+
 
         }
         clearCatch();
@@ -184,6 +224,7 @@ public class MasterAsyncTask extends AsyncTask {
         mDeleteListener = null;
         mValues = null;
         mReadCursor = null;
+        mOnUpdateListener = null;
         RemoveTask(this);
     }
 }

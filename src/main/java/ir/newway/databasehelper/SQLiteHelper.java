@@ -40,6 +40,10 @@ public class SQLiteHelper extends SQLiteAssetHelper {
         void onRead(Cursor cursor);
     }
 
+    public interface onUpdateListener {
+        void onUpdate(int numberOfAffectedRows);
+    }
+
 
     public SQLiteHelper(Context context, String name, String storageDirectory, SQLiteDatabase.CursorFactory factory, int version) {
         super(context.getApplicationContext(), name, storageDirectory, factory, version);
@@ -94,6 +98,14 @@ public class SQLiteHelper extends SQLiteAssetHelper {
 
     public void insertOrReplace(String tableName, ContentValues values, onInsertOrReplaceListener listener) {
         MasterAsyncTask.createNewTask().insertOrReplace(setupDatabase(), tableName, values, listener);
+    }
+
+    public void insert(String tableName, ContentValues values, onInsertOrReplaceListener listener) {
+        MasterAsyncTask.createNewTask().insert(setupDatabase(), tableName, values, listener);
+    }
+
+    public void update(String tableName, ContentValues values, String sqlWhere, String[] WhereArgs, onUpdateListener listener) {
+        MasterAsyncTask.createNewTask().update(setupDatabase(), tableName, values, sqlWhere, WhereArgs, listener);
     }
 
     public void select(String tableName, String[] sqlSelect, String sqlWhere, String[] WhereArgs, String groupBy, String having, String orderBy, onReadListener listener) {
